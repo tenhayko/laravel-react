@@ -63389,12 +63389,29 @@ var SingleProject = function (_Component) {
 
     _this.state = {
       project: {},
-      tasks: []
+      tasks: [],
+      title: '',
+      errors: []
     };
+    _this.handleMarkProjectAsCompleted = _this.handleMarkProjectAsCompleted.bind(_this);
+    _this.handleFieldChange = _this.handleFieldChange.bind(_this);
+    _this.handleAddNewTask = _this.handleAddNewTask.bind(_this);
+    _this.hasErrorFor = _this.hasErrorFor.bind(_this);
+    _this.renderErrorFor = _this.renderErrorFor.bind(_this);
     return _this;
   }
 
   _createClass(SingleProject, [{
+    key: 'handleMarkProjectAsCompleted',
+    value: function handleMarkProjectAsCompleted() {
+      var history = this.props.history;
+
+
+      __WEBPACK_IMPORTED_MODULE_0_axios___default.a.put('/api/projects/' + this.state.project.id).then(function (response) {
+        return history.push('/');
+      });
+    }
+  }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
       var _this2 = this;
@@ -63409,8 +63426,81 @@ var SingleProject = function (_Component) {
       });
     }
   }, {
+    key: 'handleFieldChange',
+    value: function handleFieldChange(event) {
+      this.setState({
+        title: event.target.value
+      });
+    }
+  }, {
+    key: 'handleAddNewTask',
+    value: function handleAddNewTask(event) {
+      var _this3 = this;
+
+      event.preventDefault();
+
+      var task = {
+        title: this.state.title,
+        project_id: this.state.project.id
+      };
+
+      __WEBPACK_IMPORTED_MODULE_0_axios___default.a.post('/api/tasks', task).then(function (response) {
+        // clear form input
+        _this3.setState({
+          title: ''
+        });
+        // add new task to list of tasks
+        _this3.setState(function (prevState) {
+          return {
+            tasks: prevState.tasks.concat(response.data)
+          };
+        });
+      }).catch(function (error) {
+        _this3.setState({
+          errors: error.response.data.errors
+        });
+      });
+    }
+  }, {
+    key: 'hasErrorFor',
+    value: function hasErrorFor(field) {
+      return !!this.state.errors[field];
+    }
+  }, {
+    key: 'renderErrorFor',
+    value: function renderErrorFor(field) {
+      if (this.hasErrorFor(field)) {
+        return __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
+          'span',
+          { className: 'invalid-feedback' },
+          __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
+            'strong',
+            null,
+            this.state.errors[field][0]
+          )
+        );
+      }
+    }
+  }, {
+    key: 'handleMarkTaskAsCompleted',
+    value: function handleMarkTaskAsCompleted(taskId) {
+      var _this4 = this;
+
+      __WEBPACK_IMPORTED_MODULE_0_axios___default.a.put('/api/tasks/' + taskId).then(function (response) {
+        _this4.setState(function (prevState) {
+          return {
+            tasks: prevState.tasks.filter(function (task) {
+              return task.id !== taskId;
+            })
+          };
+        });
+      });
+    }
+  }, {
     key: 'render',
     value: function render() {
+      var _this5 = this;
+
       var _state = this.state,
           project = _state.project,
           tasks = _state.tasks;
@@ -63443,10 +63533,39 @@ var SingleProject = function (_Component) {
                 ),
                 __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
                   'button',
-                  { className: 'btn btn-primary btn-sm' },
+                  {
+                    className: 'btn btn-primary btn-sm',
+                    onClick: this.handleMarkProjectAsCompleted
+                  },
                   'Mark as completed'
                 ),
                 __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement('hr', null),
+                __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
+                  'form',
+                  { onSubmit: this.handleAddNewTask },
+                  __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
+                    'div',
+                    { className: 'input-group' },
+                    __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement('input', {
+                      type: 'text',
+                      name: 'title',
+                      className: 'form-control ' + (this.hasErrorFor('title') ? 'is-invalid' : ''),
+                      placeholder: 'Task title',
+                      value: this.state.title,
+                      onChange: this.handleFieldChange
+                    }),
+                    __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
+                      'div',
+                      { className: 'input-group-append' },
+                      __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
+                        'button',
+                        { className: 'btn btn-primary' },
+                        'Add'
+                      )
+                    ),
+                    this.renderErrorFor('title')
+                  )
+                ),
                 __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
                   'ul',
                   { className: 'list-group mt-3' },
@@ -63460,7 +63579,10 @@ var SingleProject = function (_Component) {
                       task.title,
                       __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(
                         'button',
-                        { className: 'btn btn-primary btn-sm' },
+                        {
+                          className: 'btn btn-primary btn-sm',
+                          onClick: _this5.handleMarkTaskAsCompleted.bind(_this5, task.id)
+                        },
                         'Mark as completed'
                       )
                     );
