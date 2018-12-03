@@ -86,7 +86,7 @@
                           id='description'
                           className={`form-control ${this.hasErrorFor('description') ? 'is-invalid' : ''}`}
                           name='description'
-                          rows='10'
+                          rows='5'
                           value={this.state.description}
                           onChange={this.handleFieldChange}
                         />
